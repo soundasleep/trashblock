@@ -1,0 +1,20 @@
+table {
+  min-width: 300px;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+table th, table td {
+  margin: 0;
+  padding: 5px;
+  text-align: left;
+  border: thin solid #ccc;
+}
+
+table thead tr {
+  background: #ccc;
+}
+
+table tbody tr:nth-child(2n) {
+  background: #eee;
+}

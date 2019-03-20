@@ -12,18 +12,14 @@
   ],
 
   "background": {
-    "scripts": ["background.js"],
+    "scripts": ["background.js", "trashdb.js"],
     "persistent": false
-  },
-
-  "page_action": {
-    "default_popup": "config.html"
   },
 
   "content_scripts": [
     {
       "css": ["styles.css"],
-      "js": ["content.js"],
+      "js": ["content.js", "trashdb.js"],
       "matches": ["http://*/*", "https://*/*"],
       "run_at": "document_start"
     }

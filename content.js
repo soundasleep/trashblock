@@ -95,40 +95,40 @@ function identifyTrash() {
           console.log("Trash checking", element, ' --> ', text);
         }
 
-        var trashScore = calculateTrashScore(text);
+        calculateTrashScore(text, (trashScore) => {
+          // store score on the element, and change style based on score
+          // to allow toggle on/off without reloading the page
+          element.dataset['trashblockScore'] = trashScore.toFixed(2);
 
-        // store score on the element, and change style based on score
-        // to allow toggle on/off without reloading the page
-        element.dataset['trashblockScore'] = trashScore.toFixed(2);
+          if (trashScore > 0.5) {
+            element.dataset['trashblockTrash'] = true;
+          }
 
-        if (trashScore > 0.5) {
-          element.dataset['trashblockTrash'] = true;
-        }
+          var height = element.clientHeight;
+          var width = element.clientWidth;
 
-        var height = element.clientHeight;
-        var width = element.clientWidth;
+          element.insertAdjacentHTML('afterbegin', `
+            <div class="trashblock-panel-actions" style="width: ${width}px; height: ${height}px; top: 0; left: 0;">
+              <ul class="actions">
+                <li class="score">
+                  Score: ${trashScore.toFixed(2)}
+                </li>
+                <li class="mark-trash">
+                  <button>Trash</button>
+                </li>
+                <li class="mark-not-trash">
+                  <button>Not trash</button>
+                </li>
+              </ul>
+            </div>`);
 
-        element.insertAdjacentHTML('afterbegin', `
-          <div class="trashblock-panel-actions" style="width: ${width}px; height: ${height}px; top: 0; left: 0;">
-            <ul class="actions">
-              <li class="score">
-                Score: ${trashScore.toFixed(2)}
-              </li>
-              <li class="mark-trash">
-                <button>Trash</button>
-              </li>
-              <li class="mark-not-trash">
-                <button>Not trash</button>
-              </li>
-            </ul>
-          </div>`);
+          element.querySelector(".trashblock-panel-actions li.mark-trash button").addEventListener('click', (event) => {
+            markAsTrash(element, text);
+          });
 
-        element.querySelector(".trashblock-panel-actions li.mark-trash button").addEventListener('click', (event) => {
-          markAsTrash(element, text);
-        });
-
-        element.querySelector(".trashblock-panel-actions li.mark-not-trash button").addEventListener('click', (event) => {
-          markAsNotTrash(element, text);
+          element.querySelector(".trashblock-panel-actions li.mark-not-trash button").addEventListener('click', (event) => {
+            markAsNotTrash(element, text);
+          });
         });
       }
     });
@@ -138,26 +138,25 @@ function identifyTrash() {
 }
 
 function markAsTrash(element, text) {
-  if (debug) {
-    console.log("Marking element as trash");
-    console.log(" --> ", text);
-  }
-
-  // TODO apply learning to bayes filter
-
+  // mark trash status temporarily, it may still be non-trash on reload
   element.dataset['trashblockTrash'] = true;
+
+  learnAsTrash(text, () => {
+    if (debug) {
+      console.log("learnAsTrash complete");
+    }
+  });
 }
 
 function markAsNotTrash(element, text) {
-  if (debug) {
-    console.log("Marking element as not trash");
-    console.log(" --> ", text);
-  }
-
-  // TODO apply learning to bayes filter
-
-  // remove trash status temporarily, it may still be replaced on reload
+  // remove trash status temporarily, it may still be trash on reload
   delete element.dataset['trashblockTrash'];
+
+  learnAsNotTrash(text, () => {
+    if (debug) {
+      console.log("learnAsNotTrash complete");
+    }
+  });
 }
 
 function getClosest(element, selector) {
@@ -225,9 +224,4 @@ function extractTweetText(element) {
 
     textContent(element.querySelector(".QuoteTweet")),
   ].join(" ");
-}
-
-function calculateTrashScore(text) {
-  // for now, random
-  return Math.random();
 }

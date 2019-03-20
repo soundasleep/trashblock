@@ -1,4 +1,9 @@
 div#trashblock-status {
+  font-family: 'Arial', sans-serif;
+  font-size: 12px;
+  font-weight: normal;
+  color: #333;
+
   position: fixed;
   top: 0;
   left: 0;

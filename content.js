@@ -47,7 +47,18 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request == 'TrashBlock_ReportTrash') {
-      console.log("context menu element", contextMenuElement);
+      var parentTrashNode = getClosest(contextMenuElement, "[data-trashblock-checked]");
+
+      if (debug) {
+        console.log("Enabling trash reporting on closest trashable element:", parentTrashNode);
+      }
+
+      if (!parentTrashNode) {
+        alert("Sorry, I don't recognise that type of content to block yet. :(")
+      } else {
+        // show the parent node as trash temporarily
+        parentTrashNode.dataset['trashblockTrash'] = true;
+      }
     }
   });
 
@@ -83,11 +94,80 @@ function identifyTrash() {
           element.dataset['trashblockText'] = text;
           console.log("Trash checking", element, ' --> ', text);
         }
+
+        var trashScore = calculateTrashScore(text);
+
+        // store score on the element, and change style based on score
+        // to allow toggle on/off without reloading the page
+        element.dataset['trashblockScore'] = trashScore.toFixed(2);
+
+        if (trashScore > 0.5) {
+          element.dataset['trashblockTrash'] = true;
+        }
+
+        var height = element.clientHeight;
+        var width = element.clientWidth;
+
+        element.insertAdjacentHTML('afterbegin', `
+          <div class="trashblock-panel-actions" style="width: ${width}px; height: ${height}px; top: 0; left: 0;">
+            <ul class="actions">
+              <li class="score">
+                Score: ${trashScore.toFixed(2)}
+              </li>
+              <li class="mark-trash">
+                <button>Trash</button>
+              </li>
+              <li class="mark-not-trash">
+                <button>Not trash</button>
+              </li>
+            </ul>
+          </div>`);
+
+        element.querySelector(".trashblock-panel-actions li.mark-trash button").addEventListener('click', (event) => {
+          markAsTrash(element, text);
+        });
+
+        element.querySelector(".trashblock-panel-actions li.mark-not-trash button").addEventListener('click', (event) => {
+          markAsNotTrash(element, text);
+        });
       }
     });
   });
 
   document.querySelector("#trashblock-status").innerHTML = `${statistics['blocked']} / ${statistics['checked']} blocked`;
+}
+
+function markAsTrash(element, text) {
+  if (debug) {
+    console.log("Marking element as trash");
+    console.log(" --> ", text);
+  }
+
+  // TODO apply learning to bayes filter
+
+  element.dataset['trashblockTrash'] = true;
+}
+
+function markAsNotTrash(element, text) {
+  if (debug) {
+    console.log("Marking element as not trash");
+    console.log(" --> ", text);
+  }
+
+  // TODO apply learning to bayes filter
+
+  // remove trash status temporarily, it may still be replaced on reload
+  delete element.dataset['trashblockTrash'];
+}
+
+function getClosest(element, selector) {
+  for (; element && element !== document; element = element.parentNode) {
+    if (element.matches(selector)) {
+      return element;
+    }
+  }
+
+  return null;
 }
 
 // Converts something like '   @a  b:c  d' into 'a b-c d'
@@ -145,4 +225,9 @@ function extractTweetText(element) {
 
     textContent(element.querySelector(".QuoteTweet")),
   ].join(" ");
+}
+
+function calculateTrashScore(text) {
+  // for now, random
+  return Math.random();
 }

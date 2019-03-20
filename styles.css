@@ -7,5 +7,73 @@ div#trashblock-status {
   height: 50px;
   background: white;
   border: thin solid black;
-  z-index: 900000;  /* sod off, twitter */
+  z-index: 900001;  /* sod off, twitter */
+}
+
+[data-trashblock-checked] div.trashblock-panel-actions {
+  background: rgba(245, 245, 245, 1.0);
+  position: absolute;
+  display: none;
+  z-index: 1;
+  box-sizing: border-box;
+  border: thin solid rgba(0,0,0,0.25);
+}
+
+[data-trashblock-checked][data-trashblock-trash] *,
+[data-trashblock-checked][data-trashblock-trash] *::before,
+[data-trashblock-checked][data-trashblock-trash] *::after,
+[data-trashblock-checked][data-trashblock-trash]::before,
+[data-trashblock-checked][data-trashblock-trash]::after {
+  z-index: 0;
+}
+
+[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions {
+  display: block;
+  opacity: 1;
+  transition: all 0.2s;
+  z-index: 1;
+}
+
+[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions ul {
+  display: none;
+  margin: 16px;
+  text-align: right;
+}
+
+[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions ul li {
+  display: inline-block;
+  font-family: 'Arial', sans-serif;
+  font-size: 12px;
+  font-weight: normal;
+  color: #333;
+}
+
+[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions ul li + li {
+  margin-left: 5px;
+}
+
+[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions ul li button {
+  background: white;
+  border: thin solid black;
+  border-radius: 6px;
+  box-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+  margin: 0;
+  padding: 3px 6px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions ul li.mark-trash button:hover {
+  background: #fcc;
+}
+[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions ul li.mark-not-trash button:hover {
+  background: #cfc;
+}
+
+[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions:hover {
+  background: rgba(245, 245, 245, 0.2);
+}
+
+[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions:hover ul {
+  display: block;
 }

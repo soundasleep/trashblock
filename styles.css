@@ -15,7 +15,8 @@ div#trashblock-status {
   z-index: 900000001;  /* sod off, twitter AND stuff */
 }
 
-[data-trashblock-checked] div.trashblock-panel-actions {
+[data-trashblock-checked] div.trashblock-panel-actions,
+html[data-trashblock-learning] div.trashblock-panel-actions {
   background: rgba(245, 245, 245, 1.0);
   position: absolute;
   display: none;
@@ -28,24 +29,31 @@ div#trashblock-status {
 [data-trashblock-checked][data-trashblock-trash] *::before,
 [data-trashblock-checked][data-trashblock-trash] *::after,
 [data-trashblock-checked][data-trashblock-trash]::before,
-[data-trashblock-checked][data-trashblock-trash]::after {
+[data-trashblock-checked][data-trashblock-trash]::after,
+html[data-trashblock-learning] [data-trashblock-checked] *,
+html[data-trashblock-learning] [data-trashblock-checked] *::before,
+html[data-trashblock-learning] [data-trashblock-checked] *::after,
+html[data-trashblock-learning] [data-trashblock-checked]::before,
+html[data-trashblock-learning] [data-trashblock-checked]::after {
   z-index: 0;
 }
 
-[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions {
+[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions,
+html[data-trashblock-learning] [data-trashblock-checked] div.trashblock-panel-actions {
   display: block;
   opacity: 1;
   transition: all 0.2s;
   z-index: 1;
 }
 
-[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions ul {
+[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions ul,
+html[data-trashblock-learning] [data-trashblock-checked] div.trashblock-panel-actions ul {
   display: none;
   margin: 16px;
   text-align: right;
 }
 
-[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions ul li {
+[data-trashblock-checked] div.trashblock-panel-actions ul li {
   display: inline-block;
   font-family: 'Arial', sans-serif;
   font-size: 12px;
@@ -53,11 +61,11 @@ div#trashblock-status {
   color: #333;
 }
 
-[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions ul li + li {
+[data-trashblock-checked] div.trashblock-panel-actions ul li + li {
   margin-left: 5px;
 }
 
-[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions ul li button {
+[data-trashblock-checked] div.trashblock-panel-actions ul li button {
   background: white;
   border: thin solid black;
   border-radius: 6px;
@@ -68,18 +76,19 @@ div#trashblock-status {
   cursor: pointer;
 }
 
-[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions ul li.mark-trash button:hover {
+[data-trashblock-checked] div.trashblock-panel-actions ul li.mark-trash button:hover {
   background: #fcc;
 }
-[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions ul li.mark-not-trash button:hover {
+[data-trashblock-checked] div.trashblock-panel-actions ul li.mark-not-trash button:hover {
   background: #cfc;
 }
 
-[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions:hover {
+[data-trashblock-checked] div.trashblock-panel-actions:hover {
   background: rgba(245, 245, 245, 0.2);
 }
 
-[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions:hover ul {
+[data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions:hover ul,
+html[data-trashblock-learning] [data-trashblock-checked] div.trashblock-panel-actions:hover ul {
   display: block;
 }
 

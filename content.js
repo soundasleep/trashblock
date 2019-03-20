@@ -47,7 +47,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request == 'TrashBlock_ReportTrash') {
-      var parentTrashNode = getClosest(contextMenuElement, "[data-trashblock-checked]");
+      var parentTrashNode = getClosestParent(contextMenuElement, "[data-trashblock-checked]");
 
       if (debug) {
         console.log("Enabling trash reporting on closest trashable element:", parentTrashNode);
@@ -60,11 +60,18 @@ window.addEventListener('DOMContentLoaded', (event) => {
         parentTrashNode.dataset['trashblockTrash'] = true;
       }
     } else if (request == 'TrashBlock_Learn') {
-      var allTargets = document.querySelectorAll("[data-trashblock-checked]");
+      var html = document.querySelector("html");
 
-      Array.prototype.forEach.call(allTargets, (element) => {
-        element.dataset['trashblockTrash'] = true;
-      });
+      if (typeof html.dataset['trashblockLearning'] === 'undefined') {
+        html.dataset['trashblockLearning'] = true;
+      } else {
+        delete html.dataset['trashblockLearning'];
+      }
+      // var allTargets = document.querySelectorAll("[data-trashblock-checked]");
+
+      // Array.prototype.forEach.call(allTargets, (element) => {
+      //   element.dataset['trashblockTrash'] = true;
+      // });
     }
   });
 
@@ -76,8 +83,16 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
 // TODO these could be sorted in order
 var selectors = [
-  { 'type': 'twitter-tweet', 'parent': 'div[data-tweet-id]', 'text': extractTweetText },
-  { 'type': 'stuff-comment', 'parent': 'div.gig-comment-self-data', 'text': extractStuffCommentText },
+  // { 'type': 'twitter-tweet', 'parent': 'div[data-tweet-id]', 'text': extractTweetText },
+  // { 'type': 'stuff-comment', 'parent': 'div.gig-comment-self-data', 'text': extractStuffCommentText },
+  { 'type': 'generic', 'parent': 'p', 'refine': getParent, 'text': extractText },
+  { 'type': 'generic', 'parent': '[class*="comment"]', 'refine': getParent, 'text': extractText },
+  { 'type': 'generic', 'parent': '[class*="caption"]', 'refine': getParent, 'text': extractText },
+
+  { 'type': 'generic', 'parent': 'h1, h2, h3, h4, h5, h6', 'refine': getParent, 'text': extractText },
+  { 'type': 'generic', 'parent': 'li', 'refine': getParent, 'text': extractText },
+
+  { 'type': 'generic', 'parent': 'iframe', 'text': extractText }, // note we usually can't get the text or interact with the iframe thanks to same origin policy
 ];
 
 function identifyTrash() {
@@ -91,53 +106,75 @@ function identifyTrash() {
     var elements = document.querySelectorAll(selector['parent']);
 
     Array.prototype.forEach.call(elements, (element, index) => {
-      if (typeof element.dataset['trashblockChecked'] === 'undefined') {
-        statistics['checked'] += 1;
+      if (typeof selector['refine'] !== 'undefined') {
+        element = selector['refine'](element);
+      }
 
-        element.dataset['trashblockChecked'] = selector['type'];
-        var text = selector['text'](element);
+      if (typeof element.dataset['trashblockChecked'] !== 'undefined') {
+        return;
+      }
 
-        if (debug) {
-          element.dataset['trashblockText'] = text;
-          console.log("Trash checking", element, ' --> ', text);
+      // if a parent node has been checked, then this node is checked too, so bail
+      if (getClosestParent(element, '[data-trashblock-checked]')) {
+        return;
+      }
+
+      // if this node has a child that's been checked, then this node is checked too, so bail
+      if (element.querySelector('[data-trashblock-checked]')) {
+        return;
+      }
+
+      var height = element.clientHeight;
+      var width = element.clientWidth;
+
+      // if the element doesn't yet have any content, bail for now
+      if (width == 0 || height == 0) {
+        return;
+      }
+
+      element.dataset['trashblockChecked'] = selector['type'];
+
+      statistics['checked'] += 1;
+
+      var text = selector['text'](element);
+
+      if (debug) {
+        element.dataset['trashblockText'] = text;
+        console.log("Trash checking", element, ' --> ', text);
+      }
+
+      calculateTrashScore(text, (trashScore) => {
+        // store score on the element, and change style based on score
+        // to allow toggle on/off without reloading the page
+        element.dataset['trashblockScore'] = trashScore.toFixed(2);
+
+        if (trashScore > 0.5) {
+          element.dataset['trashblockTrash'] = true;
         }
 
-        calculateTrashScore(text, (trashScore) => {
-          // store score on the element, and change style based on score
-          // to allow toggle on/off without reloading the page
-          element.dataset['trashblockScore'] = trashScore.toFixed(2);
+        element.insertAdjacentHTML('afterbegin', `
+          <div class="trashblock-panel-actions" style="width: ${width}px; height: ${height}px;">
+            <ul class="actions">
+              <li class="score">
+                Score: ${trashScore.toFixed(2)}
+              </li>
+              <li class="mark-trash">
+                <button>Trash</button>
+              </li>
+              <li class="mark-not-trash">
+                <button>Not trash</button>
+              </li>
+            </ul>
+          </div>`);
 
-          if (trashScore > 0.5) {
-            element.dataset['trashblockTrash'] = true;
-          }
-
-          var height = element.clientHeight;
-          var width = element.clientWidth;
-
-          element.insertAdjacentHTML('afterbegin', `
-            <div class="trashblock-panel-actions" style="width: ${width}px; height: ${height}px; top: 0; left: 0;">
-              <ul class="actions">
-                <li class="score">
-                  Score: ${trashScore.toFixed(2)}
-                </li>
-                <li class="mark-trash">
-                  <button>Trash</button>
-                </li>
-                <li class="mark-not-trash">
-                  <button>Not trash</button>
-                </li>
-              </ul>
-            </div>`);
-
-          element.querySelector(".trashblock-panel-actions li.mark-trash button").addEventListener('click', (event) => {
-            markAsTrash(element, text);
-          });
-
-          element.querySelector(".trashblock-panel-actions li.mark-not-trash button").addEventListener('click', (event) => {
-            markAsNotTrash(element, text);
-          });
+        element.querySelector(".trashblock-panel-actions li.mark-trash button").addEventListener('click', (event) => {
+          markAsTrash(element, text);
         });
-      }
+
+        element.querySelector(".trashblock-panel-actions li.mark-not-trash button").addEventListener('click', (event) => {
+          markAsNotTrash(element, text);
+        });
+      });
     });
   });
 
@@ -166,7 +203,7 @@ function markAsNotTrash(element, text) {
   });
 }
 
-function getClosest(element, selector) {
+function getClosestParent(element, selector) {
   for (; element && element !== document; element = element.parentNode) {
     if (element.matches(selector)) {
       return element;
@@ -244,4 +281,30 @@ function extractStuffCommentText(element) {
 
     textContent(element.querySelector(".gig-comment-body")),
   ].join(" ");
+}
+
+function extractParentText(element) {
+  return [
+    siteText(),
+    'type:generic',
+
+    debug ? '[content]' : '',
+
+    textContent(element.parentNode),
+  ].join(" ");
+}
+
+function extractText(element) {
+  return [
+    siteText(),
+    'type:generic',
+
+    debug ? '[content]' : '',
+
+    textContent(element),
+  ].join(" ");
+}
+
+function getParent(element) {
+  return element.parentNode;
 }

@@ -12,7 +12,7 @@ div#trashblock-status {
   height: 50px;
   background: white;
   border: thin solid black;
-  z-index: 900001;  /* sod off, twitter */
+  z-index: 900000001;  /* sod off, twitter AND stuff */
 }
 
 [data-trashblock-checked] div.trashblock-panel-actions {
@@ -82,3 +82,11 @@ div#trashblock-status {
 [data-trashblock-checked][data-trashblock-trash] div.trashblock-panel-actions:hover ul {
   display: block;
 }
+
+/* fix various sites with terrible styling that breaks out blocks */
+
+/* stuff.co.nz */
+html .gig-comments-container *, html .gig-comments-container {
+  position: relative;
+}
+

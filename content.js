@@ -76,7 +76,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
 // TODO these could be sorted in order
 var selectors = [
-  { 'type': 'twitter', 'parent': 'div[data-tweet-id]', 'text': extractTweetText }
+  { 'type': 'twitter-tweet', 'parent': 'div[data-tweet-id]', 'text': extractTweetText },
+  { 'type': 'stuff-comment', 'parent': 'div.gig-comment-self-data', 'text': extractStuffCommentText },
 ];
 
 function identifyTrash() {
@@ -229,5 +230,18 @@ function extractTweetText(element) {
     debug ? '[quote]' : '',
 
     textContent(element.querySelector(".QuoteTweet")),
+  ].join(" ");
+}
+
+function extractStuffCommentText(element) {
+  return [
+    siteText(),
+    'type:stuff',
+
+    prefixContent('stuff:', element.querySelector(".gig-comment-username")),
+
+    debug ? '[content]' : '',
+
+    textContent(element.querySelector(".gig-comment-body")),
   ].join(" ");
 }

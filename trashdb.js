@@ -38,7 +38,7 @@ function calculateTrashForSingleWord(database, word) {
 // calculate the trash rating and callback with the probability (0..1)
 // can return NaN if we have no idea
 function calculateTrashScore(text, callback) {
-  chrome.storage.sync.get(['words'], (result) => {
+  chrome.storage.local.get(['words'], (result) => {
     var words = selectFilterableWords(text);
     var trashScore = 0;
 
@@ -75,7 +75,7 @@ function calculateTrashScore(text, callback) {
 }
 
 function applyLearning(text, is_spam, callback) {
-  chrome.storage.sync.get(['documents', 'words'], (result) => {
+  chrome.storage.local.get(['documents', 'words'], (result) => {
     var words = selectFilterableWords(text);
 
     if (typeof result['words'] === 'undefined') {
@@ -112,7 +112,7 @@ function applyLearning(text, is_spam, callback) {
       result['documents']['spam'] += 1;
     }
 
-    chrome.storage.sync.set(result, () => {
+    chrome.storage.local.set(result, () => {
       if (debug) {
         console.log("Learning database updated");
         if (verbose) {
@@ -126,25 +126,25 @@ function applyLearning(text, is_spam, callback) {
 }
 
 function resetDatabase(callback = () => {}) {
-  chrome.storage.sync.clear(() => {
+  chrome.storage.local.clear(() => {
     const defaultConfig = {
       'color': '#123456',
       'reset_at': `${new Date()}`,
     };
 
-    chrome.storage.sync.set(defaultConfig, () => {
+    chrome.storage.local.set(defaultConfig, () => {
       console.log("Default config loaded.");
     });
 
-    chrome.storage.sync.get(['color'], (result) => {
+    chrome.storage.local.get(['color'], (result) => {
       console.log("Loaded as", result['color']);
     });
 
-    chrome.storage.sync.get(['documents'], (result) => {
+    chrome.storage.local.get(['documents'], (result) => {
       console.log("Documents are", result['documents']);
     });
 
-    chrome.storage.sync.get(['words'], (result) => {
+    chrome.storage.local.get(['words'], (result) => {
       console.log("Words are", result['words']);
     });
 

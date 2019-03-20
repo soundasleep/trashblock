@@ -2,7 +2,7 @@ var debug = true;
 var verbose = false;
 
 window.addEventListener('DOMContentLoaded', (event) => {
-  chrome.storage.sync.get(['documents', 'words', 'color', 'reset_at'], (result) => {
+  chrome.storage.local.get(['documents', 'words', 'color', 'reset_at'], (result) => {
     if (debug) {
       console.log("words are", result['words']);
     }

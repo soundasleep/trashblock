@@ -20,6 +20,13 @@ window.addEventListener('DOMContentLoaded', (event) => {
         location.reload();
       });
     });
+
+    var samples = document.querySelectorAll(".sample-content");
+    Array.prototype.forEach.call(samples, (element) => {
+      calculateTrashScore(element.textContent, (score) => {
+        element.innerHTML += ` (score: ${score.toFixed(8)})`;
+      });
+    });
   });
 });
 

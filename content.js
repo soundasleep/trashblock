@@ -59,6 +59,12 @@ window.addEventListener('DOMContentLoaded', (event) => {
         // show the parent node as trash temporarily
         parentTrashNode.dataset['trashblockTrash'] = true;
       }
+    } else if (request == 'TrashBlock_Learn') {
+      var allTargets = document.querySelectorAll("[data-trashblock-checked]");
+
+      Array.prototype.forEach.call(allTargets, (element) => {
+        element.dataset['trashblockTrash'] = true;
+      });
     }
   });
 

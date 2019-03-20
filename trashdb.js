@@ -21,11 +21,57 @@ function learnAsNotTrash(text, callback) {
   return applyLearning(text, false, callback);
 }
 
-// calculate the trash rating and callback with the probability (0..1)
-function calculateTrashScore(text, callback) {
-  var trashScore = Math.random();
+function calculateTrashForSingleWord(database, word) {
+  // based on wikipedia article
+  // assume chance of spam is 50%, we can use the simpler formula
 
-  return callback(trashScore);
+  // Pr(S|W) = Pr(W|S) / (Pr(W|S) + Pr(W|H))
+  // ... i.e. we can just use the ratio of spam-to-total
+
+  if (typeof database[word] === 'undefined') {
+    return undefined; // we have no idea
+  } else {
+    return database[word]['s'] / database[word]['c'];
+  }
+}
+
+// calculate the trash rating and callback with the probability (0..1)
+// can return NaN if we have no idea
+function calculateTrashScore(text, callback) {
+  chrome.storage.sync.get(['words'], (result) => {
+    var words = selectFilterableWords(text);
+    var trashScore = 0;
+
+    // // Using ln(1/p - 1) = sum(ln(1-pX) - ln(pX))
+    var lnProbabilitySum = 0;
+
+    // // Using p = (p1p2..pN) / (p1p2..pN) + (1-p1)(1-p2)..(1-pN)
+    // var productP = 1;
+    // var productInvP = 1;
+
+    Array.prototype.forEach.call(words, (word) => {
+      var probI = calculateTrashForSingleWord(result['words'], word);
+
+      // if (typeof probI !== 'undefined') {
+      //   productP *= probI;
+      //   productInvP *= (1 - probI);
+      // }
+
+      if (typeof probI !== 'undefined') {
+        lnProbabilitySum += Math.log(1 - probI) - Math.log(probI);
+      }
+    });
+
+    var trashScore = 1 / (1 + Math.pow(Math.E, lnProbabilitySum));
+    // var trashScore2 = productP / (productP + productInvP);
+
+    if (debug) {
+      console.log("ts1 = ", trashScore);
+      // console.log("ts2 = ", trashScore2);
+    }
+
+    return callback(trashScore);
+  });
 }
 
 function applyLearning(text, is_spam, callback) {
